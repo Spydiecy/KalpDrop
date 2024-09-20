@@ -78,26 +78,5 @@ export const useKalpApi = () => {
     return callApi(endpoint, args);
   };
 
-  const getTransactionHistory = async (address: string) => {
-    const endpoint =
-      'https://gateway-api.kalp.studio/v1/contract/kalp/query/hXnehquPHxcvX0joxaLGEBXPyso1hhYo1726835489367/GetTransactionHistory';
-    const args = {
-      address: address,
-    };
-    console.log('Fetching transaction history for address:', address);
-    const response = await callApi(endpoint, args);
-    console.log('Raw transaction history response:', JSON.stringify(response, null, 2));
-    
-    // Check if the result is an array, object, or something else
-    if (Array.isArray(response.result.result)) {
-      return response.result.result;
-    } else if (typeof response.result.result === 'object' && response.result.result !== null) {
-      return Object.values(response.result.result);
-    } else {
-      console.warn('Unexpected response format:', response.result.result);
-      return [];
-    }
-  };
-
-  return { claim, balanceOf, totalSupply, transferFrom, getTransactionHistory, loading, error };
+  return { claim, balanceOf, totalSupply, transferFrom, loading, error };
 };

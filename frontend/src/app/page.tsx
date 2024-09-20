@@ -1,8 +1,8 @@
 "use client"
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback  } from 'react'
 import { useKalpApi } from '@/hooks/useKalpAPI'
-import { motion, useScroll, useTransform } from 'framer-motion'
-import { Link, Element, animateScroll as scroll, scrollSpy } from 'react-scroll'
+import { motion } from 'framer-motion'
+import { Link, Element, scrollSpy } from 'react-scroll'
 import toast, { Toaster } from 'react-hot-toast'
 import { FiCheckCircle, FiXCircle } from 'react-icons/fi'
 
@@ -15,9 +15,8 @@ const Home: React.FC = () => {
   const [toAddress, setToAddress] = useState<string>("");
   const [transferAmount, setTransferAmount] = useState<number>(0);
   const [activeSection, setActiveSection] = useState<string>("hero");
-
-  const { scrollYProgress } = useScroll();
-  const backgroundY = useTransform(scrollYProgress, [0, 1], ['0%', '100%']);
+  const [isInitialized, setIsInitialized] = useState<boolean>(false);
+  const [isLoadingTotalSupply, setIsLoadingTotalSupply] = useState<boolean>(false);
 
   const handleSetActive = (to: string) => {
     setActiveSection(to);
@@ -55,6 +54,8 @@ const Home: React.FC = () => {
   }
 
   const handleClaim = async () => {
+    if (loading || !walletAddress) return;
+  
     try {
       const data = await claim(walletAddress);
       await handleTotalSupply();
@@ -79,17 +80,6 @@ const Home: React.FC = () => {
     }
   };
 
-  const handleTotalSupply = async () => {
-    try {
-      const data = await totalSupply();
-      setTotalAirdrop(data.result.result)
-      console.log('Total Supply:', data);
-    } catch (err) {
-      console.error('TotalSupply error:', err);
-      showNotification('error', 'Failed to fetch total supply. Please try again.');
-    }
-  };
-
   const handleTransfer = async () => {
     try {
       const data = await transferFrom(fromAddress, toAddress, transferAmount);
@@ -102,10 +92,29 @@ const Home: React.FC = () => {
     }
   };
 
+  const handleTotalSupply = useCallback(async () => {
+    if (isLoadingTotalSupply) return;
+    
+    setIsLoadingTotalSupply(true);
+    try {
+      const data = await totalSupply();
+      setTotalAirdrop(data.result.result);
+      console.log('Total Supply:', data);
+    } catch (err) {
+      console.error('TotalSupply error:', err);
+      showNotification('error', 'Failed to fetch total supply. Please try again.');
+    } finally {
+      setIsLoadingTotalSupply(false);
+    }
+  }, [isLoadingTotalSupply, totalSupply]);
+
   useEffect(() => {
-    handleTotalSupply()
+    if (!isInitialized) {
+      handleTotalSupply();
+      setIsInitialized(true);
+    }
     scrollSpy.update();
-  }, []);
+  }, [isInitialized, handleTotalSupply]);
 
   const sectionVariants = {
     hidden: { opacity: 0, y: 50 },
@@ -238,7 +247,7 @@ const Home: React.FC = () => {
             <motion.button 
               className="w-full bg-white text-blue-500 font-bold py-4 px-4 rounded text-lg hover:bg-opacity-80 transition duration-300 disabled:bg-opacity-50 disabled:cursor-not-allowed"
               onClick={handleClaim} 
-              disabled={loading}
+              disabled={loading || !walletAddress}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
