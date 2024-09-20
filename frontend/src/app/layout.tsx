@@ -6,7 +6,7 @@ const inter = Handjet({ subsets: ['latin'] });
 
 
 export const metadata = {
-  title: 'Airdrop Machine',
+  title: 'KalpDrop',
   description: 'Click to get airdrop',
 };
 

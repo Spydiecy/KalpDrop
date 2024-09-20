@@ -7,12 +7,13 @@ export const useKalpApi = () => {
 
   const apiKey = process.env.NEXT_PUBLIC_API_KEY;
 
-  const callApi = async (endpoint: string, args : { [key: string]: any }) => {
+  const callApi = async (endpoint: string, args: { [key: string]: any }) => {
     setError(null);
+    setLoading(true);
     const params = {
       network: 'TESTNET',
       blockchain: 'KALP',
-      walletAddress: '928bc86952ebb55788e2042ad478b8c1db3ded0d',
+      walletAddress: 'c7c7894eacdd0457030298d571302b4eacb911b9',
       args: args,
     };
 
@@ -33,17 +34,16 @@ export const useKalpApi = () => {
       }
       setLoading(false);
       return data;
-    } catch (err : any) {
+    } catch (err: any) {
       setError(err);
       setLoading(false);
       throw err;
     }
   };
 
-  const claim = async (address : string) => {
-    setLoading(true);
+  const claim = async (address: string) => {
     const endpoint =
-      'https://gateway-api.kalp.studio/v1/contract/kalp/invoke/M5fb2tJjsQk6unfWDttcTxkp1GC129dr1726253658000/Claim';
+      'https://gateway-api.kalp.studio/v1/contract/kalp/invoke/hXnehquPHxcvX0joxaLGEBXPyso1hhYo1726835489367/Claim';
     const args = {
       amount: 100,
       address: address,
@@ -51,23 +51,53 @@ export const useKalpApi = () => {
     return callApi(endpoint, args);
   };
 
-  const balanceOf = async (account : string) => {
+  const balanceOf = async (account: string) => {
     const endpoint =
-      'https://gateway-api.kalp.studio/v1/contract/kalp/query/M5fb2tJjsQk6unfWDttcTxkp1GC129dr1726253658000/BalanceOf';
+      'https://gateway-api.kalp.studio/v1/contract/kalp/query/hXnehquPHxcvX0joxaLGEBXPyso1hhYo1726835489367/BalanceOf';
     const args = {
       account: account,
+    };
+    return callApi(endpoint, args);
+  };
+  
+  const transferFrom = async (from: string, to: string, value: number) => {
+    const endpoint =
+      'https://gateway-api.kalp.studio/v1/contract/kalp/invoke/hXnehquPHxcvX0joxaLGEBXPyso1hhYo1726835489367/TransferFrom';
+    const args = {
+      from,
+      to,
+      value,
     };
     return callApi(endpoint, args);
   };
 
   const totalSupply = async () => {
     const endpoint =
-      'https://gateway-api.kalp.studio/v1/contract/kalp/query/M5fb2tJjsQk6unfWDttcTxkp1GC129dr1726253658000/TotalSupply';
+      'https://gateway-api.kalp.studio/v1/contract/kalp/query/hXnehquPHxcvX0joxaLGEBXPyso1hhYo1726835489367/TotalSupply';
     const args = {};
     return callApi(endpoint, args);
   };
 
-  return { claim, balanceOf, totalSupply, loading, error };
+  const getTransactionHistory = async (address: string) => {
+    const endpoint =
+      'https://gateway-api.kalp.studio/v1/contract/kalp/query/hXnehquPHxcvX0joxaLGEBXPyso1hhYo1726835489367/GetTransactionHistory';
+    const args = {
+      address: address,
+    };
+    console.log('Fetching transaction history for address:', address);
+    const response = await callApi(endpoint, args);
+    console.log('Raw transaction history response:', JSON.stringify(response, null, 2));
+    
+    // Check if the result is an array, object, or something else
+    if (Array.isArray(response.result.result)) {
+      return response.result.result;
+    } else if (typeof response.result.result === 'object' && response.result.result !== null) {
+      return Object.values(response.result.result);
+    } else {
+      console.warn('Unexpected response format:', response.result.result);
+      return [];
+    }
+  };
+
+  return { claim, balanceOf, totalSupply, transferFrom, getTransactionHistory, loading, error };
 };
-
-
