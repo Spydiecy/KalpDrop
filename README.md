@@ -91,7 +91,7 @@ We welcome contributions to KalpDrop! Please feel free to contribute.
 
 ## 📄 License
 
-KalpDrop is released under the [MIT License](#).
+KalpDrop is released under the [MIT License](https://github.com/Spydiecy/KalpDrop/blob/main/LICENSE).
 
 ## 🙋‍♀️ Support
 
